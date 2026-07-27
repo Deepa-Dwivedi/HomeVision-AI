@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>HomeVision AI</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='/css/style.css') }}"
+    >
+</head>
+
+<body>
+    <header class="hero">
+        <div class="hero-content">
+            <p class="eyebrow">
+                Austin Real Estate Intelligence
+            </p>
+
+            <h1>HomeVision AI</h1>
+
+            <p class="hero-text">
+                Estimate residential property values using
+                machine learning and local housing features.
+            </p>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-label">
+                    Training Properties
+                </p>
+
+                <p class="stat-value">
+                    24
+                </p>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-label">
+                    ZIP Codes
+                </p>
+
+                <p class="stat-value">
+                    6
+                </p>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-label">
+                    Model
+                </p>
+
+                <p class="stat-value stat-text">
+                    Random Forest
+                </p>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-label">
+                    Prediction Type
+                </p>
+
+                <p class="stat-value stat-text">
+                    Instant Estimate
+                </p>
+            </article>
+        </section>
+
+        <section class="content-grid">
+
+            <article class="form-card">
+                <div class="section-heading">
+                    <p class="section-kicker">
+                       Property details
+                    </p>
+
+                    <div class="header-row">
+                         <h2>
+                             Predict House Price
+                         </h2>
+
+                         <a href="/history" class="history-link">
+                            History
+                         </a>
+                     </div>
+
+                     <p>
+                          Enter the property characteristics below.
+                     </p>
+                 </div>
+
+                <form action="/predict" method="post">
+
+                    <div class="form-group">
+                        <label for="zip_code">
+                            ZIP Code
+                        </label>
+
+                        <select
+                            id="zip_code"
+                            name="zip_code"
+                            required
+                        >
+                            {% for zip_code in zip_codes %}
+                                <option
+                                    value="{{ zip_code }}"
+                                    {% if zip_code == selected_zip %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ zip_code }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="square_feet">
+                                Square Feet
+                            </label>
+
+                            <input
+                                type="number"
+                                id="square_feet"
+                                name="square_feet"
+                                min="300"
+                                step="1"
+                                value="{{ square_feet or '' }}"
+                                placeholder="Example: 2200"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lot_size">
+                                Lot Size
+                            </label>
+
+                            <input
+                                type="number"
+                                id="lot_size"
+                                name="lot_size"
+                                min="500"
+                                step="1"
+                                value="{{ lot_size or '' }}"
+                                placeholder="Example: 7500"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="bedrooms">
+                                Bedrooms
+                            </label>
+
+                            <input
+                                type="number"
+                                id="bedrooms"
+                                name="bedrooms"
+                                min="1"
+                                step="1"
+                                value="{{ bedrooms or '' }}"
+                                placeholder="Example: 4"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bathrooms">
+                                Bathrooms
+                            </label>
+
+                            <input
+                                type="number"
+                                id="bathrooms"
+                                name="bathrooms"
+                                min="1"
+                                step="1"
+                                value="{{ bathrooms or '' }}"
+                                placeholder="Example: 3"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="year_built">
+                            Year Built
+                        </label>
+
+                        <input
+                            type="number"
+                            id="year_built"
+                            name="year_built"
+                            min="1800"
+                            max="2026"
+                            step="1"
+                            value="{{ year_built or '' }}"
+                            placeholder="Example: 2018"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit">
+                        Predict House Price
+                    </button>
+
+                </form>
+
+                {% if error %}
+                    <div class="error-card">
+                        {{ error }}
+                    </div>
+                {% endif %}
+            </article>
+
+            <aside class="result-panel">
+
+                <div class="result-card">
+                    <p class="result-label">
+                        Estimated Property Value
+                    </p>
+
+                    {% if prediction %}
+                        <p class="result-price">
+                            {{ prediction }}
+                        </p>
+
+                        <p class="result-location">
+                            ZIP Code {{ selected_zip }}
+                        </p>
+
+                        {% if price_range %}
+                            <div class="range-section">
+                                <p class="range-label">
+                                    Estimated Price Range
+                                </p>
+
+                                <p class="range-value">
+                                    {{ price_range }}
+                                </p>
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        <p class="result-placeholder">
+                            Complete the form to generate
+                            a price estimate.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="info-card">
+                    <h3>
+                        Model Inputs
+                    </h3>
+
+                    <ul>
+                        <li>ZIP code</li>
+                        <li>Square footage</li>
+                        <li>Bedrooms and bathrooms</li>
+                        <li>Year built</li>
+                        <li>Lot size</li>
+                    </ul>
+                </div>
+
+                <div class="disclaimer-card">
+                    <h3>
+                        Important
+                    </h3>
+
+                    <p>
+                        This application uses sample training
+                        data and is intended for learning and
+                        portfolio demonstration only.
+                    </p>
+                </div>
+
+            </aside>
+
+        </section>
+    </main>
+
+    <footer>
+        Built with FastAPI, Python, Pandas,
+        Scikit-learn and Random Forest.
+    </footer>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Prediction Details</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='/css/style.css') }}?v=6"
+    >
+</head>
+
+<body>
+    <header class="hero">
+        <div class="hero-content">
+            <p class="eyebrow">
+                HomeVision AI
+            </p>
+
+            <h1>
+                Prediction Details
+            </h1>
+
+            <p class="hero-text">
+                Review the complete information for this
+                saved house-price prediction.
+            </p>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        {% if error %}
+            <section class="details-card">
+                <div class="error-card">
+                    {{ error }}
+                </div>
+
+                <a
+                    href="/history"
+                    class="history-link details-back-link"
+                >
+                    Back to History
+                </a>
+            </section>
+
+        {% else %}
+            <section class="details-card">
+
+                <div class="details-header">
+                    <div>
+                        <p class="section-kicker">
+                            Saved prediction
+                        </p>
+
+                        <h2>
+                            Prediction #{{ prediction.id }}
+                        </h2>
+                    </div>
+
+                    <a
+                        href="/history"
+                        class="history-link"
+                    >
+                        Back to History
+                    </a>
+                </div>
+
+                <div class="details-grid">
+
+                    <article class="detail-item">
+                        <span>ZIP Code</span>
+                        <strong>{{ prediction.zip_code }}</strong>
+                    </article>
+
+                    <article class="detail-item">
+                        <span>Square Feet</span>
+                        <strong>
+                            {{ "{:,}".format(
+                                prediction.square_feet
+                            ) }}
+                        </strong>
+                    </article>
+
+                    <article class="detail-item">
+                        <span>Bedrooms</span>
+                        <strong>{{ prediction.bedrooms }}</strong>
+                    </article>
+
+                    <article class="detail-item">
+                        <span>Bathrooms</span>
+                        <strong>{{ prediction.bathrooms }}</strong>
+                    </article>
+
+                    <article class="detail-item">
+                        <span>Year Built</span>
+                        <strong>{{ prediction.year_built }}</strong>
+                    </article>
+
+                    <article class="detail-item">
+                        <span>Lot Size</span>
+                        <strong>
+                            {{ "{:,}".format(
+                                prediction.lot_size
+                            ) }}
+                        </strong>
+                    </article>
+
+                    <article class="detail-item detail-price">
+                        <span>Predicted Price</span>
+                        <strong>
+                            ${{ "{:,.0f}".format(
+                                prediction.predicted_price
+                            ) }}
+                        </strong>
+                    </article>
+
+                    <article class="detail-item">
+                        <span>Prediction Date</span>
+                        <strong>{{ prediction.created_at }}</strong>
+                    </article>
+
+                </div>
+            </section>
+        {% endif %}
+
+    </main>
+
+    <footer>
+        Built with FastAPI, SQLite and Scikit-learn.
+    </footer>
+</body>
+</html>

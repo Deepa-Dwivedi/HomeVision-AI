@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Prediction History</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='/css/style.css') }}?v=4"
+    >
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+</head>
+
+<body>
+    <header class="hero">
+        <div class="hero-content">
+            <p class="eyebrow">
+                HomeVision AI
+            </p>
+
+            <h1>
+                Prediction History
+            </h1>
+
+            <p class="hero-text">
+                Review house-price predictions saved
+                in the SQLite database.
+            </p>
+        </div>
+    </header>
+
+<main class="page-container">
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-title">
+                Total Predictions
+            </div>
+
+            <div class="stat-number">
+                {{ stats.total_predictions }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">
+                Average Price
+            </div>
+
+            <div class="stat-number">
+                ${{ "{:,.0f}".format(stats.average_price) }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">
+                Highest Price
+            </div>
+
+            <div class="stat-number">
+                ${{ "{:,.0f}".format(stats.highest_price) }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">
+                Lowest Price
+            </div>
+
+            <div class="stat-number">
+                ${{ "{:,.0f}".format(stats.lowest_price) }}
+            </div>
+        </div>
+
+    </section>
+        <section class="history-card zip-summary-card">
+
+    <div class="history-header">
+        <div>
+            <p class="section-kicker">
+                ZIP analytics
+            </p>
+
+            <h2>
+                Average Price by ZIP Code
+            </h2>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3>Average Price by ZIP Code</h3>
+
+        <canvas id="zipChart"></canvas>
+   </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ZIP Code</th>
+                    <th>Prediction Count</th>
+                    <th>Average Predicted Price</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in zip_summary %}
+                    <tr>
+                        <td>{{ item.zip_code }}</td>
+                        <td>{{ item.prediction_count }}</td>
+                        <td>
+                            ${{ "{:,.0f}".format(item.average_price) }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3">
+                            No ZIP summary available.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<section class="history-card trend-card">
+
+    <div class="history-header">
+        <div>
+            <p class="section-kicker">
+                Prediction trend
+            </p>
+
+            <h2>
+                Predictions Over Time
+            </h2>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <canvas id="trendChart"></canvas>
+    </div>
+
+</section>
+
+        <section class="history-card">
+            <div class="history-header">
+                <div>
+                    <p class="section-kicker">
+                        Saved records
+                    </p>
+
+                    <h2>
+                        Recent Predictions
+                    </h2>
+                </div>
+
+                <a href="/" class="history-link">
+                    Back to Predictor
+                </a>
+            </div>
+            <form action="/history" method="get" class="filter-form">
+
+    <div class="filter-group">
+        <label for="history_zip">
+            ZIP Code
+        </label>
+
+        <input
+            type="text"
+            id="history_zip"
+            name="zip_code"
+            placeholder="Example: 78701"
+            value="{{ search_zip or '' }}"
+        >
+    </div>
+
+    <div class="filter-group">
+        <label for="filter_bedrooms">
+            Bedrooms
+        </label>
+
+        <select
+            id="filter_bedrooms"
+            name="bedrooms"
+        >
+            <option value="">All</option>
+
+            {% for number in range(1, 8) %}
+                <option
+                    value="{{ number }}"
+                    {% if selected_bedrooms == number %}
+                        selected
+                    {% endif %}
+                >
+                    {{ number }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="filter_bathrooms">
+            Bathrooms
+        </label>
+
+        <select
+            id="filter_bathrooms"
+            name="bathrooms"
+        >
+            <option value="">All</option>
+
+            {% for number in range(1, 7) %}
+                <option
+                    value="{{ number }}"
+                    {% if selected_bathrooms == number %}
+                        selected
+                    {% endif %}
+                >
+                    {{ number }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="filter_year">
+            Year Built
+        </label>
+
+        <input
+            type="number"
+            id="filter_year"
+            name="year_built"
+            placeholder="Example: 2020"
+            value="{{ selected_year or '' }}"
+        >
+    </div>
+
+    <div class="filter-actions">
+    <button type="submit">Apply Filters</button>
+
+    <a href="/history" class="history-link">
+        Clear Filters
+    </a>
+
+    <a href="/export-csv" class="export-link">
+        📥 Export CSV
+    </a>
+</div>
+
+</form>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>ZIP Code</th>
+                            <th>Square Feet</th>
+                            <th>Bedrooms</th>
+                            <th>Bathrooms</th>
+                            <th>Year Built</th>
+                            <th>Lot Size</th>
+                            <th>Predicted Price</th>
+                            <th>Action<th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+    {% for item in predictions %}
+        <tr>
+            <td>{{ item["id"] }}</td>
+            <td>{{ item["created_at"] }}</td>
+            <td>{{ item["zip_code"] }}</td>
+            <td>{{ item["square_feet"] }}</td>
+            <td>{{ item["bedrooms"] }}</td>
+            <td>{{ item["bathrooms"] }}</td>
+            <td>{{ item["year_built"] }}</td>
+            <td>{{ item["lot_size"] }}</td>
+
+            <td>
+                ${{ "{:,.0f}".format(
+                    item["predicted_price"]
+                ) }}
+            </td>
+
+
+            <td>
+                <a
+                    href="/prediction/{{ item['id'] }}"
+                    class="view-link"
+                >
+                    View
+                </a>
+            </td>
+
+        </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="10">
+                                    {% if search_zip or selected_bedrooms or selected_bathrooms or selected_year %}
+                                        No predictions match the selected filters.
+                                    {% else %}      
+                                        No predictions saved yet.
+                                    {% endif %} 
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+<script>
+
+const labels = [
+{% for row in zip_summary %}
+"{{ row.zip_code }}",
+{% endfor %}
+];
+
+const prices = [
+{% for row in zip_summary %}
+{{ row.average_price }},
+{% endfor %}
+];
+
+const ctx = document.getElementById("zipChart");
+
+new Chart(ctx, {
+    type: "bar",
+
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Average Price ($)",
+            data: prices,
+            backgroundColor: "#1769aa",
+            borderRadius: 8,
+            borderWidth: 0
+        }]
+    },
+
+    options: {
+        responsive: true,
+
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: "Average Predicted Price by ZIP Code",
+                font: {
+                    size: 18
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+
+                border: {
+                   display: false
+                }
+            },
+
+           y: {
+               grid: {
+                  display: false,
+                  drawBorder: false
+              },
+
+              border: {
+                  display: false
+              },
+
+              ticks: {
+                  callback: function(value) {
+                    return "$" + (value / 1000) + "k";
+                  }
+              }
+          }
+       }
+    }
+});
+const trendLabels = {{ trend_labels | tojson }};
+const trendPrices = {{ trend_prices | tojson }};
+
+const trendCtx = document.getElementById("trendChart");
+
+new Chart(trendCtx, {
+    type: "line",
+
+    data: {
+        labels: trendLabels,
+
+        datasets: [{
+            label: "Predicted Price",
+            data: trendPrices,
+            borderColor: "#1769aa",
+            backgroundColor: "rgba(23, 105, 170, 0.15)",
+            borderWidth: 3,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7
+        }]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+            legend: {
+                display: false
+            },
+
+            title: {
+                display: true,
+                text: "Prediction Trend Over Time",
+                font: {
+                    size: 18,
+                    weight: "bold"
+                },
+                color: "#123d60"
+            },
+
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return "$" + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                },
+
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            },
+
+            y: {
+                grid: {
+                    display: false
+                },
+
+                ticks: {
+                    callback: function(value) {
+                        return "$" + (value / 1000) + "k";
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
